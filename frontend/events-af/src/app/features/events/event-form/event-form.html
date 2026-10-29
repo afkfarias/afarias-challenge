@@ -1,1 +1,82 @@
-<p>event-form works!</p>
+<form class="event-form" [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()">
+  <fieldset class="form-grid" [disabled]="submitting()">
+    <legend class="visually-hidden">Datos del evento</legend>
+
+    <div class="field">
+      <label for="event-id">Identificador del evento</label>
+      <input
+        id="event-id"
+        type="text"
+        formControlName="eventId"
+        placeholder="EVT-1001"
+        required
+        [attr.aria-invalid]="isInvalid('eventId')"
+        [attr.aria-describedby]="isInvalid('eventId') ? 'event-id-error' : null"
+      />
+      @if (isInvalid('eventId')) {
+        <p id="event-id-error" class="field-error">{{ messages.validation.eventId }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="event-type">Tipo de evento</label>
+      <select
+        id="event-type"
+        formControlName="eventType"
+        required
+        [attr.aria-invalid]="isInvalid('eventType')"
+        [attr.aria-describedby]="isInvalid('eventType') ? 'event-type-error' : null"
+      >
+        @for (eventType of eventTypes; track eventType) {
+          <option [value]="eventType">{{ eventType }}</option>
+        }
+      </select>
+      @if (isInvalid('eventType')) {
+        <p id="event-type-error" class="field-error">{{ messages.validation.eventType }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="event-timestamp">Fecha y hora</label>
+      <input
+        id="event-timestamp"
+        type="datetime-local"
+        step="1"
+        formControlName="timestamp"
+        required
+        [attr.aria-invalid]="isInvalid('timestamp')"
+        [attr.aria-describedby]="isInvalid('timestamp') ? 'event-timestamp-error' : 'timestamp-hint'"
+      />
+      @if (isInvalid('timestamp')) {
+        <p id="event-timestamp-error" class="field-error">{{ messages.validation.timestamp }}</p>
+      } @else {
+        <p id="timestamp-hint" class="field-hint">Fecha y hora local del evento.</p>
+      }
+    </div>
+
+    <div class="field field--full">
+      <label for="event-description">Descripción</label>
+      <textarea
+        id="event-description"
+        rows="3"
+        formControlName="description"
+        placeholder="Breve descripción del evento"
+        required
+        [attr.aria-invalid]="isInvalid('description')"
+        [attr.aria-describedby]="isInvalid('description') ? 'event-description-error' : null"
+      ></textarea>
+      @if (isInvalid('description')) {
+        <p id="event-description-error" class="field-error">{{ messages.validation.description }}</p>
+      }
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button class="submit-button" type="submit" [disabled]="submitting()">
+      {{ submitting() ? 'Registrando...' : 'Registrar evento' }}
+    </button>
+    <button class="secondary-button" type="button" [disabled]="submitting()" (click)="resetForm()">
+      Limpiar
+    </button>
+  </div>
+</form>

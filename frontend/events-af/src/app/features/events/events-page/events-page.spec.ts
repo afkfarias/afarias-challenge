@@ -4,8 +4,10 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
-import { EventoResponseDto } from '../event.model';
+import { EventForm } from '../event-form/event-form';
+import { EventoRequestDto, EventoResponseDto, EventoTipo } from '../event.model';
 import { EventsPage } from './events-page';
 
 describe('EventsPage', () => {
@@ -16,7 +18,7 @@ describe('EventsPage', () => {
     id: 1,
     eventId: 'EVT-1001',
     timestamp: '2026-05-20T10:00:00',
-    eventType: 'PRODUCTION',
+    eventType: EventoTipo.PRODUCTION,
     description: 'Inicio de producción',
   };
 
@@ -129,7 +131,7 @@ describe('EventsPage', () => {
         ...event,
         id: 2,
         eventId: 'EVT-1002',
-        eventType: 'QUALITY',
+        eventType: EventoTipo.QUALITY,
       },
     ]);
     fixture.detectChanges();
@@ -144,5 +146,182 @@ describe('EventsPage', () => {
     fixture.destroy();
 
     expect(request.cancelled).toBeTrue();
+  });
+
+  function submitEvent(values: EventoRequestDto): void {
+    const form = fixture.debugElement.query(By.directive(EventForm)).componentInstance as EventForm;
+    form.form.setValue(values);
+    const formElement = (fixture.nativeElement as HTMLElement).querySelector('form');
+    formElement?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+  }
+
+  const request: EventoRequestDto = {
+    eventId: 'EVT-1001',
+    eventType: EventoTipo.PRODUCTION,
+    timestamp: '2026-05-20T10:00:00',
+    description: 'Inicio de producción',
+  };
+
+  it('registers the entered event, retains the form and refreshes the table', () => {
+    httpTesting.expectOne('/eventos').flush([]);
+    fixture.detectChanges();
+
+    submitEvent(request);
+
+    const post = httpTesting.expectOne({ method: 'POST', url: '/eventos' });
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(post.request.body).toEqual(request);
+    expect(element.querySelector<HTMLButtonElement>('.submit-button')?.disabled).toBeTrue();
+
+    post.flush(event, { status: 201, statusText: 'Created' });
+    fixture.detectChanges();
+
+    expect(element.querySelector('.save-feedback')?.textContent)
+      .toContain('Evento EVT-1001 registrado correctamente.');
+
+    httpTesting.expectOne({ method: 'GET', url: '/eventos' }).flush([event]);
+    fixture.detectChanges();
+
+    expect(element.querySelector('tbody')?.textContent).toContain('EVT-1001');
+    expect(element.querySelector<HTMLInputElement>('#event-id')?.value).toBe('EVT-1001');
+    expect(element.querySelector<HTMLButtonElement>('.submit-button')?.disabled).toBeFalse();
+  });
+
+  it('reports duplicates and allows resending the same identifier', () => {
+    httpTesting.expectOne('/eventos').flush([event]);
+    fixture.detectChanges();
+    submitEvent(request);
+
+    httpTesting.expectOne({ method: 'POST', url: '/eventos' }).flush(
+      { mensaje: 'Ya existe un registro para el eventId', codigo: 409 },
+      { status: 409, statusText: 'Conflict' },
+    );
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('.save-feedback[role="alert"]')?.textContent)
+      .toContain('Ya existe un evento con el identificador EVT-1001.');
+    expect(element.querySelectorAll('tbody tr').length).toBe(1);
+    expect(element.querySelector<HTMLInputElement>('#event-id')?.value).toBe('EVT-1001');
+    httpTesting.expectNone({ method: 'GET', url: '/eventos' });
+
+    submitEvent(request);
+
+    const repeatedPost = httpTesting.expectOne({ method: 'POST', url: '/eventos' });
+    expect(repeatedPost.request.body).toEqual(request);
+    repeatedPost.flush(
+      { mensaje: 'Ya existe un registro para el eventId', codigo: 409 },
+      { status: 409, statusText: 'Conflict' },
+    );
+    fixture.detectChanges();
+  });
+
+  for (const failure of [
+    { status: 400, message: 'Los datos del evento no son válidos.' },
+    { status: 500, message: 'No se pudo registrar el evento.' },
+  ]) {
+    it('reports a registration error with HTTP status ' + failure.status, () => {
+      httpTesting.expectOne('/eventos').flush([]);
+      fixture.detectChanges();
+      submitEvent(request);
+
+      httpTesting.expectOne({ method: 'POST', url: '/eventos' }).flush(
+        { mensaje: 'Solicitud rechazada', codigo: failure.status },
+        { status: failure.status, statusText: 'Error' },
+      );
+      fixture.detectChanges();
+
+      const element = fixture.nativeElement as HTMLElement;
+
+      expect(element.querySelector('.save-feedback[role="alert"]')?.textContent)
+        .toContain(failure.message);
+      expect(element.querySelector<HTMLButtonElement>('.submit-button')?.disabled).toBeFalse();
+      expect(element.querySelector<HTMLInputElement>('#event-id')?.value).toBe('EVT-1001');
+      httpTesting.expectNone({ method: 'GET', url: '/eventos' });
+    });
+  }
+
+  it('reports a connection error when registering an event', () => {
+    httpTesting.expectOne('/eventos').flush([]);
+    fixture.detectChanges();
+    submitEvent(request);
+
+    httpTesting.expectOne({ method: 'POST', url: '/eventos' }).error(new ProgressEvent('error'));
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('.save-feedback[role="alert"]')?.textContent)
+      .toContain('No se pudo conectar con el servidor.');
+    expect(element.querySelector<HTMLButtonElement>('.submit-button')?.disabled).toBeFalse();
+  });
+
+  it('does not send simultaneous registration requests', () => {
+    httpTesting.expectOne('/eventos').flush([]);
+    fixture.detectChanges();
+    submitEvent(request);
+    submitEvent(request);
+
+    const posts = httpTesting.match({ method: 'POST', url: '/eventos' });
+    expect(posts.length).toBe(1);
+    const post = posts[0];
+    post.flush(
+      { mensaje: 'Ya existe un registro para el eventId', codigo: 409 },
+      { status: 409, statusText: 'Conflict' },
+    );
+    fixture.detectChanges();
+  });
+
+  it('preserves registration success if refreshing the list fails', () => {
+    httpTesting.expectOne('/eventos').flush([]);
+    fixture.detectChanges();
+    submitEvent(request);
+
+    httpTesting.expectOne({ method: 'POST', url: '/eventos' })
+      .flush(event, { status: 201, statusText: 'Created' });
+    httpTesting.expectOne({ method: 'GET', url: '/eventos' }).flush(
+      { mensaje: 'Error interno del servidor', codigo: 500 },
+      { status: 500, statusText: 'Internal Server Error' },
+    );
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('.save-feedback[role="status"]')?.textContent)
+      .toContain('registrado correctamente');
+    expect(element.querySelector('.save-feedback[role="alert"]')).toBeNull();
+    expect(element.querySelector('[aria-labelledby="events-title"] [role="alert"]')?.textContent)
+      .toContain('No se pudieron cargar los eventos.');
+  });
+
+  it('replaces a pending list request after registering an event', () => {
+    const initialGet = httpTesting.expectOne({ method: 'GET', url: '/eventos' });
+    submitEvent(request);
+
+    httpTesting.expectOne({ method: 'POST', url: '/eventos' })
+      .flush(event, { status: 201, statusText: 'Created' });
+
+    expect(initialGet.cancelled).toBeTrue();
+
+    httpTesting.expectOne({ method: 'GET', url: '/eventos' }).flush([event]);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('tbody')?.textContent)
+      .toContain('EVT-1001');
+  });
+
+  it('cancels a pending registration request when the page is destroyed', () => {
+    httpTesting.expectOne('/eventos').flush([]);
+    fixture.detectChanges();
+    submitEvent(request);
+
+    const post = httpTesting.expectOne({ method: 'POST', url: '/eventos' });
+
+    fixture.destroy();
+
+    expect(post.cancelled).toBeTrue();
   });
 });

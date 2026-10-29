@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { EventoResponseDto } from '../event.model';
+import { EventoResponseDto, EventoTipo } from '../event.model';
 import { EventList } from './event-list';
 
 describe('EventList', () => {
@@ -11,14 +11,14 @@ describe('EventList', () => {
       id: 1,
       eventId: 'EVT-1001',
       timestamp: '2026-05-20T10:00:00',
-      eventType: 'PRODUCTION',
+      eventType: EventoTipo.PRODUCTION,
       description: 'Inicio de producción',
     },
     {
       id: 2,
       eventId: 'EVT-1002',
       timestamp: '2026-05-20T11:30:00',
-      eventType: 'QUALITY',
+      eventType: EventoTipo.QUALITY,
       description: 'Control de calidad',
     },
   ];

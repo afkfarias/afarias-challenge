@@ -1,8 +1,16 @@
 <h1>Gestión de eventos</h1>
 
-<section aria-labelledby="register-title">
+<section aria-labelledby="register-title" [attr.aria-busy]="saving()">
   <h2 id="register-title">Registrar evento</h2>
-  <app-event-form />
+  <app-event-form [submitting]="saving()" (submitted)="createEvent($event)" />
+
+  @if (saving()) {
+    <p class="status save-feedback" role="status">Registrando evento...</p>
+  } @else if (saveError()) {
+    <p class="status status--error save-feedback" role="alert">{{ saveError() }}</p>
+  } @else if (saveSuccess()) {
+    <p class="status status--success save-feedback" role="status">{{ saveSuccess() }}</p>
+  }
 </section>
 
 <section aria-labelledby="events-title" [attr.aria-busy]="loading()">

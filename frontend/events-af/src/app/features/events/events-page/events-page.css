@@ -76,3 +76,9 @@ button:disabled {
 .status--error p {
   margin: 0 0 12px;
 }
+
+.status--success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}

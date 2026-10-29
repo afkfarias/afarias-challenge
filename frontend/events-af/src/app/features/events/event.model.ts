@@ -1,4 +1,7 @@
-export type EventoTipo = 'PRODUCTION' | 'QUALITY';
+export enum EventoTipo {
+  PRODUCTION = 'PRODUCTION',
+  QUALITY = 'QUALITY',
+}
 
 export interface EventoRequestDto {
   eventId: string;

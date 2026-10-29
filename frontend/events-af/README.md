@@ -1,59 +1,33 @@
-# EventsAf
+# Frontend de eventos
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.42.
+Aplicación Angular 20 para registrar y consultar eventos.
 
-## Development server
+## Ejecutar el frontend
 
-To start a local development server, run:
+Requisitos: Node.js 22.12 o posterior de la rama 22, npm y el backend iniciado en `http://localhost:8080`.
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Desde la carpeta `frontend/events-af`:
 
 ```bash
-ng generate component component-name
+npm ci
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Abrir `http://localhost:4200/events`. El proxy de desarrollo reenvía las peticiones de `/eventos` al backend.
+
+## Ejecutar las pruebas
 
 ```bash
-ng generate --help
+npm test
 ```
 
-## Building
+Las pruebas se ejecutan en el navegador y se repiten al modificar archivos. Para detenerlas, presionar `Ctrl+C`.
 
-To build the project run:
+## Registro y consulta de eventos
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- El formulario requiere identificador externo, tipo, fecha y hora, y descripción.
+- El selector obtiene sus opciones del enum `EventoTipo`: `PRODUCTION` y `QUALITY`.
+- La fecha se ingresa con el selector nativo del navegador. Se envía como texto ISO sin zona horaria ni conversión a UTC, de acuerdo con `LocalDateTime`. La tabla la muestra como `dd/MM/yyyy HH:mm:ss`.
+- El registro utiliza `POST /eventos`. Si funciona, se confirma el resultado y se actualiza el listado mediante `GET /eventos`.
+- Los datos se conservan después del envío. Para comprobar duplicados, reenviar el mismo identificador y verificar el mensaje correspondiente al HTTP 409. El botón **Limpiar** permite comenzar otro registro.
+- La auditoría de los eventos `QUALITY` se genera en el backend.
