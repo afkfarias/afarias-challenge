@@ -1,1 +1,36 @@
-<p>event-list works!</p>
+<div class="table-container" role="region" aria-label="Listado de eventos" tabindex="0">
+  <table>
+    <caption class="visually-hidden">Eventos registrados</caption>
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Identificador del evento</th>
+        <th scope="col">Tipo</th>
+        <th scope="col">Descripción</th>
+        <th scope="col">Fecha y hora</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (event of events(); track event.id) {
+        <tr>
+          <td>{{ event.id }}</td>
+          <td class="event-id">{{ event.eventId }}</td>
+          <td>
+            <span
+              class="event-type"
+              [class.event-type--quality]="event.eventType === 'QUALITY'"
+            >
+              {{ event.eventType }}
+            </span>
+          </td>
+          <td class="description">{{ event.description }}</td>
+          <td class="timestamp">
+            <time [attr.datetime]="event.timestamp">
+              {{ event.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}
+            </time>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

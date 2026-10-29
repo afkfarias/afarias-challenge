@@ -1,11 +1,33 @@
 <h1>Gestión de eventos</h1>
 
-<section>
-  <h2>Registrar evento</h2>
+<section aria-labelledby="register-title">
+  <h2 id="register-title">Registrar evento</h2>
   <app-event-form />
 </section>
 
-<section>
-  <h2>Eventos registrados</h2>
-  <app-event-list />
+<section aria-labelledby="events-title" [attr.aria-busy]="loading()">
+  <div class="section-heading">
+    <h2 id="events-title">Eventos registrados</h2>
+    <button
+      class="refresh-button"
+      type="button"
+      [disabled]="loading()"
+      (click)="loadEvents()"
+    >
+      Actualizar
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="status" role="status">Cargando eventos...</p>
+  } @else if (loadError()) {
+    <div class="status status--error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button type="button" (click)="loadEvents()">Reintentar</button>
+    </div>
+  } @else if (events().length === 0) {
+    <p class="status" role="status">Todavía no hay eventos registrados.</p>
+  } @else {
+    <app-event-list [events]="events()" />
+  }
 </section>
