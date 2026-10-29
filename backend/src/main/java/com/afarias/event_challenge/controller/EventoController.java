@@ -49,6 +49,10 @@ public class EventoController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Solicitud inválida o datos incorrectos.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Ya existe un registro para el eventId.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping

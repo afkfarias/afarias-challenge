@@ -23,6 +23,15 @@ npm test
 
 Las pruebas se ejecutan en el navegador y se repiten al modificar archivos. Para detenerlas, presionar `Ctrl+C`.
 
+## Arquitectura
+
+El frontend usa Angular 20 con componentes standalone y se organiza por funcionalidad en `src/app/features/events`:
+
+- **EventsPage** coordina el registro, las consultas, los estados de pantalla y el modal de auditoría.
+- **EventForm** administra y valida el formulario; **EventList** muestra la tabla y permite solicitar la auditoría.
+- **EventService** concentra las peticiones HTTP al backend.
+- **event.model.ts** define los DTO y el enum de tipos; **event-messages.ts** centraliza los mensajes.
+
 ## Registro y consulta de eventos
 
 - El formulario requiere identificador externo, tipo, fecha y hora, y descripción.

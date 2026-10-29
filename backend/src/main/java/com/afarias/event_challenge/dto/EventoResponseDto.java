@@ -21,7 +21,7 @@ public class EventoResponseDto {
   @Schema(description = "Fecha y hora del evento", example = "2026-05-20T10:00:00")
   LocalDateTime timestamp;
 
-  @Schema(description = "Tipo de evento", example = "FC Barcelona")
+  @Schema(description = "Tipo de evento", example = "QUALITY")
   EventoTipo eventType;
 
   @Schema(description = "Descripción del evento", example = "Production line started")

@@ -23,7 +23,7 @@ public class EventoRequestDto {
   @NotNull
   private LocalDateTime timestamp;
 
-  @Schema(description = "Tipo de evento", example = "FC Barcelona")
+  @Schema(description = "Tipo de evento", example = "PRODUCTION")
   @NotNull
   private EventoTipo eventType;
 
