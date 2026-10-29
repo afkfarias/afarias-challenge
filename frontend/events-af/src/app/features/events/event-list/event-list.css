@@ -77,3 +77,22 @@ tbody tr:hover {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.view-button {
+  padding: 7px 12px;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  background: #1d4ed8;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.view-button:hover {
+  background: #1e40af;
+}
+
+.view-button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}

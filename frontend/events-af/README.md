@@ -30,4 +30,4 @@ Las pruebas se ejecutan en el navegador y se repiten al modificar archivos. Para
 - La fecha se ingresa con el selector nativo del navegador. Se envía como texto ISO sin zona horaria ni conversión a UTC, de acuerdo con `LocalDateTime`. La tabla la muestra como `dd/MM/yyyy HH:mm:ss`.
 - El registro utiliza `POST /eventos`. Si funciona, se confirma el resultado y se actualiza el listado mediante `GET /eventos`.
 - Los datos se conservan después del envío. Para comprobar duplicados, reenviar el mismo identificador y verificar el mensaje correspondiente al HTTP 409. El botón **Limpiar** permite comenzar otro registro.
-- La auditoría de los eventos `QUALITY` se genera en el backend.
+- La auditoría de los eventos `QUALITY` se genera en el backend. El botón **Ver** de la tabla permite consultarla en un modal.

@@ -36,6 +36,42 @@
   } @else if (events().length === 0) {
     <p class="status" role="status">Todavía no hay eventos registrados.</p>
   } @else {
-    <app-event-list [events]="events()" />
+    <app-event-list [events]="events()" (auditRequested)="viewAudit($event)" />
   }
 </section>
+
+<dialog
+  #auditDialog
+  class="audit-dialog"
+  aria-labelledby="audit-title"
+  (close)="cancelAuditRequest()"
+>
+  <h2 id="audit-title">Auditoría del evento {{ auditEventId() }}</h2>
+
+  <div class="audit-content" [attr.aria-busy]="auditLoading()">
+    @if (auditLoading()) {
+      <p class="status" role="status">Cargando auditoría...</p>
+    } @else if (auditError()) {
+      <p class="status status--error" role="alert">{{ auditError() }}</p>
+    } @else if (audit(); as record) {
+      <dl class="audit-details">
+        <dt>ID de auditoría</dt>
+        <dd>{{ record.id }}</dd>
+        <dt>ID del evento</dt>
+        <dd>{{ record.eventoId }}</dd>
+        <dt>Identificador externo</dt>
+        <dd>{{ record.eventId }}</dd>
+        <dt>Fecha y hora</dt>
+        <dd>
+          <time [attr.datetime]="record.createdAt">
+            {{ record.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}
+          </time>
+        </dd>
+      </dl>
+    }
+  </div>
+
+  <div class="audit-actions">
+    <button type="button" autofocus (click)="auditDialog.close()">Cerrar</button>
+  </div>
+</dialog>

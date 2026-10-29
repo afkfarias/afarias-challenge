@@ -8,6 +8,7 @@
         <th scope="col">Tipo</th>
         <th scope="col">Descripción</th>
         <th scope="col">Fecha y hora</th>
+        <th scope="col">Auditoría</th>
       </tr>
     </thead>
     <tbody>
@@ -28,6 +29,18 @@
             <time [attr.datetime]="event.timestamp">
               {{ event.timestamp | date: 'dd/MM/yyyy HH:mm:ss' }}
             </time>
+          </td>
+          <td>
+            @if (event.eventType === eventTypes.QUALITY) {
+              <button
+                class="view-button"
+                type="button"
+                [attr.aria-label]="'Ver auditoría del evento ' + event.eventId"
+                (click)="auditRequested.emit(event)"
+              >
+                Ver
+              </button>
+            }
           </td>
         </tr>
       }

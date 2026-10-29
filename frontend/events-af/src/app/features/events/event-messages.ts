@@ -12,6 +12,8 @@ export const EVENT_MESSAGES = {
     load: 'No se pudieron cargar los eventos. Intentá nuevamente.',
     invalidData: 'Los datos del evento no son válidos. Revisá los campos e intentá nuevamente.',
     create: 'No se pudo registrar el evento. Intentá nuevamente.',
+    audit: 'No se pudo consultar la auditoría. Intentá nuevamente.',
+    auditNotFound: 'No se encontró la auditoría de este evento.',
     duplicate: (eventId?: string): string => {
       const identifier = eventId?.trim();
       return identifier
@@ -26,10 +28,10 @@ export const EVENT_MESSAGES = {
 
 export function getEventErrorMessage(
   error: unknown,
-  operation: 'load' | 'create',
+  operation: 'load' | 'create' | 'audit',
   eventId?: string,
 ): string {
-  const fallback = operation === 'load' ? EVENT_MESSAGES.errors.load : EVENT_MESSAGES.errors.create;
+  const fallback = EVENT_MESSAGES.errors[operation];
 
   if (!(error instanceof HttpErrorResponse)) {
     return fallback;
@@ -37,6 +39,10 @@ export function getEventErrorMessage(
 
   if (error.status === 0) {
     return EVENT_MESSAGES.errors.connection;
+  }
+
+  if (operation === 'audit' && error.status === HttpStatusCode.NotFound) {
+    return EVENT_MESSAGES.errors.auditNotFound;
   }
 
   if (operation === 'create') {

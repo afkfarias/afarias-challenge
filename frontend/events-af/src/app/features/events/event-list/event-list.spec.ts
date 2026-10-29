@@ -48,6 +48,7 @@ describe('EventList', () => {
       'PRODUCTION',
       'Inicio de producción',
       '20/05/2026 10:00:00',
+      '',
     ]);
     expect(rows[1].textContent).toContain('QUALITY');
     expect(rows[1].textContent).toContain('Control de calidad');
@@ -64,5 +65,21 @@ describe('EventList', () => {
     expect(rows.length).toBe(1);
     expect(rows[0].textContent).toContain('EVT-1002');
     expect(rows[0].textContent).not.toContain('EVT-1001');
+  });
+
+  it('shows Ver only for QUALITY events and emits the selected event', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const rows = element.querySelectorAll('tbody tr');
+    const selected = jasmine.createSpy('auditRequested');
+    fixture.componentInstance.auditRequested.subscribe(selected);
+
+    expect(rows[0].querySelector('button')).toBeNull();
+    expect(element.querySelectorAll('.view-button').length).toBe(1);
+
+    const button = rows[1].querySelector<HTMLButtonElement>('.view-button')!;
+    expect(button.textContent?.trim()).toBe('Ver');
+    button.click();
+
+    expect(selected).toHaveBeenCalledOnceWith(events[1]);
   });
 });

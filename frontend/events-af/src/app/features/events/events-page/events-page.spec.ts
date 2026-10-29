@@ -7,7 +7,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { EventForm } from '../event-form/event-form';
-import { EventoRequestDto, EventoResponseDto, EventoTipo } from '../event.model';
+import { AuditoriaResponseDto, EventoRequestDto, EventoResponseDto, EventoTipo } from '../event.model';
 import { EventsPage } from './events-page';
 
 describe('EventsPage', () => {
@@ -323,5 +323,105 @@ describe('EventsPage', () => {
     fixture.destroy();
 
     expect(post.cancelled).toBeTrue();
+  });
+
+  const qualityEvent: EventoResponseDto = {
+    ...event,
+    id: 2,
+    eventId: 'EVT-1002',
+    eventType: EventoTipo.QUALITY,
+  };
+
+  const auditRecord: AuditoriaResponseDto = {
+    id: 10,
+    eventoId: 2,
+    eventId: 'EVT-1002',
+    createdAt: '2026-05-20T11:35:00',
+  };
+
+  function openAuditDialog(): HTMLDialogElement {
+    httpTesting.expectOne('/eventos').flush([event, qualityEvent]);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const button = element.querySelector<HTMLButtonElement>('.view-button')!;
+    button.focus();
+    button.click();
+    fixture.detectChanges();
+
+    return element.querySelector<HTMLDialogElement>('dialog')!;
+  }
+
+  it('loads the audit with the numeric event id and displays it in the modal', () => {
+    const dialog = openAuditDialog();
+
+    expect(dialog.open).toBeTrue();
+    expect(dialog.querySelector('[role="status"]')?.textContent).toContain('Cargando auditoría');
+
+    httpTesting.expectOne({ method: 'GET', url: '/eventos/2/auditoria' }).flush(auditRecord);
+    fixture.detectChanges();
+
+    const values = Array.from(dialog.querySelectorAll('dd'))
+      .map((element) => element.textContent?.trim());
+
+    expect(values).toEqual(['10', '2', 'EVT-1002', '20/05/2026 11:35:00']);
+    expect(dialog.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('shows a not-found message when the event has no audit', () => {
+    const dialog = openAuditDialog();
+
+    httpTesting.expectOne('/eventos/2/auditoria').flush(
+      { mensaje: 'Auditoría no encontrada', codigo: 404 },
+      { status: 404, statusText: 'Not Found' },
+    );
+    fixture.detectChanges();
+
+    expect(dialog.open).toBeTrue();
+    expect(dialog.querySelector('[role="alert"]')?.textContent)
+      .toContain('No se encontró la auditoría de este evento.');
+    expect(dialog.querySelector('dl')).toBeNull();
+  });
+
+  it('shows an audit error if the server fails', () => {
+    const dialog = openAuditDialog();
+
+    httpTesting.expectOne('/eventos/2/auditoria').flush(
+      { mensaje: 'Error interno del servidor', codigo: 500 },
+      { status: 500, statusText: 'Internal Server Error' },
+    );
+    fixture.detectChanges();
+
+    expect(dialog.querySelector('[role="alert"]')?.textContent)
+      .toContain('No se pudo consultar la auditoría.');
+    expect(dialog.querySelector('dl')).toBeNull();
+  });
+
+  it('shows a connection error while loading an audit', () => {
+    const dialog = openAuditDialog();
+
+    httpTesting.expectOne('/eventos/2/auditoria').error(new ProgressEvent('error'));
+    fixture.detectChanges();
+
+    expect(dialog.querySelector('[role="alert"]')?.textContent)
+      .toContain('No se pudo conectar con el servidor.');
+  });
+
+  it('closes the modal, cancels a pending audit and restores focus', async () => {
+    const dialog = openAuditDialog();
+    const auditRequest = httpTesting.expectOne('/eventos/2/auditoria');
+    const closed = new Promise<void>((resolve) => {
+      dialog.addEventListener('close', () => resolve(), { once: true });
+    });
+
+    dialog.querySelector<HTMLButtonElement>('button')!.click();
+    await closed;
+    fixture.detectChanges();
+
+    expect(dialog.open).toBeFalse();
+    expect(auditRequest.cancelled).toBeTrue();
+    expect(document.activeElement).toBe(
+      (fixture.nativeElement as HTMLElement).querySelector('.view-button'),
+    );
   });
 });

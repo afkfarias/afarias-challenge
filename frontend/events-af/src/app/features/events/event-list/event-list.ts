@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { EventoResponseDto, EventoTipo } from '../event.model';
 
@@ -12,6 +12,7 @@ import { EventoResponseDto, EventoTipo } from '../event.model';
 })
 export class EventList {
   readonly events = input.required<EventoResponseDto[]>();
+  readonly auditRequested = output<EventoResponseDto>();
 
   protected readonly eventTypes = EventoTipo;
 }
