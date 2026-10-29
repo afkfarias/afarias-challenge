@@ -1,5 +1,6 @@
 package com.afarias.event_challenge.service;
 
+import com.afarias.event_challenge.dto.AuditoriaResponseDto;
 import com.afarias.event_challenge.dto.EventoRequestDto;
 import com.afarias.event_challenge.dto.EventoResponseDto;
 
@@ -22,4 +23,5 @@ public interface EventoService {
    */
   EventoResponseDto crearEvento(EventoRequestDto evento);
 
+  AuditoriaResponseDto obtenerAuditoriaPorEventoId(Long eventoId);
 }
