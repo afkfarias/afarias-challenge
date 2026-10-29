@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    image: event-challenge-afarias
+    container_name: event-challenge-afarias
+    ports:
+      - "8080:8080"
